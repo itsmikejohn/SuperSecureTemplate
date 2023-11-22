@@ -1,5 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
-import type { Handle } from '@sveltejs/kit'
+import { redirect, type Handle } from '@sveltejs/kit'
 
 const url = import.meta.env.VITE_SUPABASE_URL;
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -28,8 +28,19 @@ export const handle: Handle = async ({ event, resolve }) => {
     const cookie = event.cookies;
     const currentURL = event.url;
     const supabase = event.locals.supabase;
+    const checkSession = await event.locals.getSession();
 
+    supabase.auth.onAuthStateChange( (event, session) => {
+        if(event === "SIGNED_IN"){
+            throw redirect(302, "/Nice")
+        }
+    })
 
+    if(currentURL.pathname === "/NoAuth/Login"){
+        if(checkSession){
+            throw redirect(302, "/HasUser/thansGOD")
+        }
+    }
 
 
     return resolve(event, {
